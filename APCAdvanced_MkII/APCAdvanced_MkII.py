@@ -289,10 +289,15 @@ class APCAdvanced_MkII(APC40_MkII):
 
   @contextmanager
   def component_guard(self):
-    """ Customized to inject additional things """
-    with super(APCAdvanced_MkII, self).component_guard():
-      with self.make_injector().everywhere():
-        with self._v2_injector:
+    """ Customized to inject additional things.
+
+    Both injectors wrap the inherited guard rather than sitting inside it, so
+    they are still registered while OptimizedControlSurface commits the
+    ownership changes it defers to the end of the guard.
+    """
+    with self.make_injector().everywhere():
+      with self._v2_injector:
+        with super(APCAdvanced_MkII, self).component_guard():
           yield
 
   def make_injector(self):

@@ -22,7 +22,6 @@ class PPMeter(ControlSurfaceComponent, APCMessenger):
     self.top = top
     self.bottom = bottom
     self.track = track
-    self.prev_mean_peak = 0.0
     self._on_output_meter.subject = self.track
 
   def set_target_matrix(self, target_matrix):

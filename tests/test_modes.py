@@ -5,18 +5,9 @@ against its own base class, so an `ableton.v2` component put straight into a
 mode list is silently not treated as a mode and never gets enabled. These tests
 pin down that the script hands ModesComponent things it can actually use.
 """
-import os
-import sys
 import unittest
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-REFERENCE = os.environ.get('LIVE11_REFERENCE')
-if not REFERENCE:
-  raise SystemExit('set LIVE11_REFERENCE to a tree prepared by tools/prepare_reference.py')
-sys.path[:0] = [ROOT, os.path.join(ROOT, 'tools'), os.path.abspath(REFERENCE)]
-import live_stub
-live_stub.install()
+import live_env  # noqa: F401 - puts Live 11's API on the path
 
 from _Framework.ControlSurfaceComponent import ControlSurfaceComponent
 from _Framework.Layer import Layer

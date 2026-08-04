@@ -66,7 +66,10 @@ class DrumGroupFinderComponent(Component):
     self._on_devices_changed.replace_subjects(chains)
 
   def _update_drum_group(self):
+    """ Notifies every time, not only on a change: the step sequencer attaches
+    its listener after this component is built, so an already-found rack would
+    otherwise never reach it """
     drum_group = find_drum_group_device(self.root)
     if liveobj_changed(self._drum_group, drum_group):
       self._drum_group = drum_group
-      self.notify_drum_group()
+    self.notify_drum_group()

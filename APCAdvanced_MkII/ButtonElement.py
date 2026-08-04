@@ -10,5 +10,8 @@ class ButtonElement(ButtonElement):
     pass
 
   def reset(self):
-    self.set_identifier(self._original_identifier)
-    self.set_channel(self._original_channel)
+    """ Live 11's reset_state puts back the default channel and identifier, and
+    also clears the script suppression the drum pads switch on while
+    sequencing, which plain reset() leaves in place """
+    self.reset_state()
+    super(ButtonElement, self).reset()

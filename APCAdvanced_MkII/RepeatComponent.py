@@ -8,10 +8,6 @@ class RepeatComponent(DeviceComponent, APCMessenger):
   """ Takes buttons rather than encoders.
   Doesn't support paging because why bother?
   """
-  def __init__(self, *a, **k):
-    super(RepeatComponent, self).__init__(*a, **k)
-    self._device_buttons = None
-
   @property
   def _bank(self):
     return parameter_banks(self._device)[0]
@@ -22,6 +18,8 @@ class RepeatComponent(DeviceComponent, APCMessenger):
 
   @subject_slot_group('value')
   def _on_parameter_button(self, value, button):
+    if not self._device:
+      return
     parameter = self._bank[self._button_index(button)]
     if value > 0:
       parameter.value = parameter.max

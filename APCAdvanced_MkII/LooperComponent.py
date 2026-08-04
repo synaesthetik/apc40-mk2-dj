@@ -8,8 +8,6 @@ class LooperComponent(ControlSurfaceComponent):
   def __init__(self, *a, **k):
     super(LooperComponent, self).__init__(*a, **k)
     self._toggle_button = None
-    self._loop_length = 16
-    self._loop_start = 0
 
   # PROPERTIES
   @property

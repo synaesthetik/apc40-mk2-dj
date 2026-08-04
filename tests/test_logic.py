@@ -4,18 +4,9 @@ Run with a prepared Live 11 reference tree on the path:
 
   LIVE11_REFERENCE=/path/to/prepared/tree python3 -m unittest discover tests
 """
-import os
-import sys
 import unittest
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-REFERENCE = os.environ.get('LIVE11_REFERENCE')
-if not REFERENCE:
-  raise SystemExit('set LIVE11_REFERENCE to a tree prepared by tools/prepare_reference.py')
-sys.path[:0] = [ROOT, os.path.join(ROOT, 'tools'), os.path.abspath(REFERENCE)]
-import live_stub
-live_stub.install()
+import live_env  # noqa: F401 - puts Live 11's API on the path
 
 from APCAdvanced_MkII.APCNoteEditorComponent import APCNoteEditorComponent, color_for_note
 from APCAdvanced_MkII.ButtonSliderElement import ButtonSliderElement
