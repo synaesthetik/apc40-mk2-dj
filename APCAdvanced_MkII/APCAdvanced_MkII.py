@@ -9,7 +9,7 @@ sys.modules['_APC.ControlElementUtils'] = ControlElementUtils
 sys.modules['_APC.SessionComponent'] = SessionComponent
 sys.modules['_APC.SkinDefault'] = SkinDefault
 
-from _Framework.ModesComponent import ModesComponent, ImmediateBehaviour, AddLayerMode, DelayMode
+from _Framework.ModesComponent import ModesComponent, ImmediateBehaviour, AddLayerMode, ComponentMode, DelayMode, LayerMode
 from _Framework.Layer import Layer
 from _Framework.SessionZoomingComponent import SessionZoomingComponent
 from _Framework.Dependency import inject
@@ -39,6 +39,25 @@ from .SkinDefault import make_rgb_skin
 from .StepSeqComponent import StepSeqComponent
 from .StepperComponent import StepperComponent
 from .VelocityProvider import VelocityProvider
+
+class ComponentLayerMode(LayerMode):
+  """ Hands a component its layer and enables it for as long as the mode lasts.
+
+  _Framework's LayerMode only assigns the layer, and a disabled component grabs
+  nothing from it. Wrapping components by hand is also the only way to put an
+  ableton.v2 component in a mode: ModesComponent recognises components by
+  isinstance against _Framework's base class, so a pushbase component silently
+  ends up treated as something that is not a mode at all.
+  """
+
+  def enter_mode(self):
+    super(ComponentLayerMode, self).enter_mode()
+    self._get_component().set_enabled(True)
+
+  def leave_mode(self):
+    self._get_component().set_enabled(False)
+    super(ComponentLayerMode, self).leave_mode()
+
 
 class APCAdvanced_MkII(APC40_MkII):
   """ APC40Mk2 script with step sequencer mode """
@@ -208,15 +227,15 @@ class APCAdvanced_MkII(APC40_MkII):
 
   def _session_mode_layers(self):
     return [ self._session, self._session_zoom,
-        (self._repeats, self._repeats_layer),
-        (self._ppm, self._ppm_layer)]
+        ComponentLayerMode(self._repeats, self._repeats_layer),
+        ComponentLayerMode(self._ppm, self._ppm_layer)]
 
   def _sequencer_mode_layers(self):
     return [
-      self._note_editor,
-      (self._drum_group, self._drum_group_layer()),
-      self._note_editor_settings,
-      (self._sequencer, self._sequencer_layer())]
+      ComponentMode(self._note_editor),
+      ComponentLayerMode(self._drum_group, self._drum_group_layer()),
+      ComponentMode(self._note_editor_settings),
+      ComponentLayerMode(self._sequencer, self._sequencer_layer())]
 
   def _stepper_buttons(self):
     return self._select_buttons.submatrix[4:8, :1]

@@ -91,6 +91,13 @@ was built on, so the substantive changes are:
   of building them itself, and it no longer accepts `note_editor_settings`. The
   note editor, drum group and note settings are now created in
   `_create_sequencer()`, the way the stock Push script does it.
+- **Modes are wrapped by hand.** `ModesComponent` recognises components with an
+  isinstance check against `_Framework`'s base class, so a `pushbase` component
+  dropped into a mode list is quietly treated as something that is not a mode and
+  never enabled. On top of that, `LayerMode` only hands over a layer, and a
+  disabled component grabs nothing from one, so the original's
+  `(component, layer)` pairs became `ComponentLayerMode`, which assigns the layer
+  and enables the component.
 - **`DrumGroupFinderComponent` is gone from Live 11** and is reimplemented here
   on `ableton.v2`, following the selected track.
 - **Velocity comes from a provider.** Live 11's note editor reads note velocity
@@ -140,6 +147,9 @@ That gives you:
 - every keyword passed to a base constructor checked against its signature,
   following the whole cooperative `__init__` chain
 - every `self._attribute` read checked against the class and its bases
+- every entry in a mode list checked to be something `ModesComponent` can
+  actually enter, and every `Layer` key checked to resolve to a handler on the
+  component it is given to
 - unit tests for the logic that changed — velocity buckets and their skin
   colours, four-wide triplet step layout, meter scaling, velocity provider,
   velocity column LEDs
