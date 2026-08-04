@@ -8,10 +8,12 @@ from .RingedEncoderElement import RingedEncoderElement
 from .ColorButtonElement import ColorButtonElement
 
 def make_button(channel, identifier, name = None, *a, **k):
+    if name is not None:
+      k['name'] = name
     if name and name.find('_Clip_') >= 0:
-      return ColorButtonElement(True, MIDI_NOTE_TYPE, channel, identifier, name=name, *a, **k)
+      return ColorButtonElement(True, MIDI_NOTE_TYPE, channel, identifier, *a, **k)
     else:
-      return ButtonElement(True, MIDI_NOTE_TYPE, channel, identifier, name=name, *a, **k)
+      return ButtonElement(True, MIDI_NOTE_TYPE, channel, identifier, *a, **k)
 
 
 def make_pedal_button(identifier, *a, **k):
