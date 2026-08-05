@@ -16,6 +16,23 @@ Lineage:
 
 Everything you install lives in `APCAdvanced_MkII/`.
 
+## Control map
+
+Will Marshall's own overlay for the template, which is also the clearest
+statement of what the script is supposed to do:
+
+![APC40 MkII Performance Template control map](docs/willmarshall_djtemplatemkii.jpg)
+
+Three modes, selected with the Pan / Sends / User buttons:
+
+- **A — Session** (+ deck filters and global FX)
+- **B — Session** (+ sends)
+- **C — Sequencer**
+
+Full size at [`docs/willmarshall_djtemplatemkii.jpg`](docs/willmarshall_djtemplatemkii.jpg).
+Diagram © Will Marshall, included here as documentation for a product that is no
+longer distributed.
+
 ## Install
 
 Copy the script folder into Live's user Remote Scripts folder and restart Live:
@@ -52,8 +69,9 @@ On top of Live's stock APC40 MkII script:
 - **Step sequencer** on the User button: a 4×4 drum pad area, a 4×4 step grid, a
   loop selector row, quantisation on the track stop buttons, a velocity column
   on the scene launch buttons, and playhead feedback on the pads.
-- **Visual metronome** component (`StepperComponent`), built but not bound to a
-  mode — as in the original.
+- **Visual metronome** — the control map documents it on the second row of
+  buttons, but the component (`StepperComponent`) is built and never bound to a
+  mode, in his original as much as here, so it does nothing. See below.
 
 ### What is not included
 
@@ -119,6 +137,14 @@ was built on, so the substantive changes are:
 - **Python 3 proper:** `izip`/`imap`/`ifilter`/`xrange` removed, implicit relative
   imports made explicit, tuple-unpacking lambdas rewritten, `is -1` → `== -1`.
 
+### Known gap
+
+The **visual metronome** is on the control map but was never wired up. The
+component exists, takes the playhead and the four right-hand select buttons, and
+re-channels them to the metronome's own notes — but nothing ever enables it, in
+his sources as much as in this port. Wiring it into the session modes is a small
+change; it is left alone here because the original behaved this way.
+
 ### Behaviour differences from the original
 
 - The sequencer's shift button is mapped to the note editor's **mute button**.
@@ -130,6 +156,13 @@ was built on, so the substantive changes are:
   keeps them.
 - Step colours use five velocity buckets, as before. Live 11 natively supports
   three, so `_determine_color` is overridden rather than the whole matrix update.
+- **The looper puts a clip's own loop back.** His version overwrote `loop_start`
+  and `loop_end` on the selected clip and never restored them, so a DJ loop cost
+  that clip its markers permanently — including an effect's dummy clip, if that
+  was what happened to be showing in Detail/Clip view. The clip's loop is now
+  remembered when a DJ loop starts and restored when the loop button releases it.
+  His source has two fields named for exactly this, `_loop_start` and
+  `_loop_length`, that nothing ever read.
 
 ## Verifying it
 

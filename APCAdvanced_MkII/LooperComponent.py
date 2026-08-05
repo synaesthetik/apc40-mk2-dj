@@ -1,13 +1,20 @@
 from contextlib import contextmanager
+from ableton.v2.base import liveobj_valid
 from _Framework.ControlSurfaceComponent import ControlSurfaceComponent
 from _Framework.SubjectSlot import subject_slot
 
 class LooperComponent(ControlSurfaceComponent):
-  """ Allows DJ-style looping of the currently selected clip """
+  """ Allows DJ-style looping of the currently selected clip.
+
+  The clip's own loop is remembered while a DJ loop is running and put back when
+  it is released, so looping a clip never costs it the markers it came with.
+  """
 
   def __init__(self, *a, **k):
     super(LooperComponent, self).__init__(*a, **k)
     self._toggle_button = None
+    self._held_clip = None
+    self._held_loop = None
 
   # PROPERTIES
   @property
@@ -77,7 +84,10 @@ class LooperComponent(ControlSurfaceComponent):
   @subject_slot('value')
   def _on_clip_looping_value(self, value):
     if self.clip and value > 0:
-      self.clip.looping = not self.clip.looping
+      if self.holds_loop:
+        self._release_original_loop()
+      else:
+        self.clip.looping = not self.clip.looping
     self.update()
 
   @subject_slot('value')
@@ -140,12 +150,44 @@ class LooperComponent(ControlSurfaceComponent):
     Will calculate correct order to make changes, e.g.
     If new start value >= current end value
     """
-    if start >= self.end:
-      self.clip.loop_end = end
-      self.clip.loop_start = start
+    self._hold_original_loop()
+    self._write_loop(self.clip, start, end)
+
+  def _write_loop(self, clip, start, end):
+    if start >= clip.loop_end:
+      clip.loop_end = end
+      clip.loop_start = start
     else:
-      self.clip.loop_start = start
-      self.clip.loop_end = end
+      clip.loop_start = start
+      clip.loop_end = end
+
+  # HOLDING THE CLIP'S OWN LOOP
+  @property
+  def holds_loop(self):
+    """ Whether a DJ loop is running on the clip currently on show """
+    return self._held_clip is not None and self._held_clip == self.clip
+
+  def _hold_original_loop(self):
+    """ Remember the clip's own loop before a DJ loop overwrites it """
+    clip = self.clip
+    if self._held_clip is not None and self._held_clip != clip:
+      self._release_original_loop()
+    if self._held_clip is None:
+      self._held_clip = clip
+      self._held_loop = (clip.loop_start, clip.loop_end, clip.looping)
+
+  def _release_original_loop(self):
+    """ Give the clip back the loop it came with """
+    clip, loop = self._held_clip, self._held_loop
+    self._held_clip, self._held_loop = None, None
+    if not liveobj_valid(clip):
+      return
+    start, end, looping = loop
+    try:
+      self._write_loop(clip, start, end)
+      clip.looping = looping
+    except RuntimeError:
+      pass
 
   @contextmanager
   def hold_loop(self, loop = True):
@@ -153,6 +195,7 @@ class LooperComponent(ControlSurfaceComponent):
     Some properties are only available when looping or not looping
     So we hold loop on/off to access these properties
     """
+    self._hold_original_loop() # Before the flip below, so the clip's own state is what gets kept
     was_looping = self.clip.looping # Remember whether we were looping
     self.clip.looping = loop
     yield
